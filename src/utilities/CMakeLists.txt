@@ -38,6 +38,7 @@ set(SRCS
   threading.c
   timer.c
   timing.c
+  vnv.c
 )
 
 target_sources(HYPRE

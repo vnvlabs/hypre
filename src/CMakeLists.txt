@@ -60,6 +60,8 @@ option(HYPRE_ENABLE_HYPRE_LAPACK     "Use internal LAPACK library" ON)
 option(HYPRE_ENABLE_PERSISTENT_COMM  "Use persistent communication" OFF)
 option(HYPRE_ENABLE_GLOBAL_PARTITION "Use global partitioning" OFF)
 option(HYPRE_ENABLE_FEI              "Use FEI" OFF) # TODO: Add this cmake feature
+option(HYPRE_ENABLE_VNV              "Use VNV" OFF)  
+
 option(HYPRE_WITH_MPI                "Compile with MPI" ON)
 option(HYPRE_WITH_OPENMP             "Use OpenMP" OFF)
 option(HYPRE_WITH_HOPSCOTCH          "Use hopscotch hashing with OpenMP" OFF)
@@ -119,6 +121,14 @@ else()
   set(HYPRE_NO_GLOBAL_PARTITION ON CACHE BOOL "" FORCE)
 endif()
 
+if (HYPRE_ENABLE_VNV)
+  set(HYPRE_USING_VNV ON CACHE BOOL "" FORCE)
+else()
+  set(HYPRE_USING_VNV OFF CACHE BOOL "" FORCE)
+endif()
+
+
+
 if (HYPRE_WITH_MPI)
   set(HYPRE_SEQUENTIAL OFF CACHE BOOL "" FORCE)
 else()
@@ -172,6 +182,8 @@ set(HYPRE_MAIN_HEADERS
 target_sources(HYPRE
   PRIVATE ${HYPRE_MAIN_HEADERS}
   )
+set_target_properties(HYPRE PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 set(HYPRE_HEADERS ${HYPRE_HEADERS} ${HYPRE_MAIN_HEADERS})
 
 # Headers and sources: blas
@@ -272,6 +284,13 @@ if (HYPRE_USING_OPENMP)
   find_package (OpenMP REQUIRED)
   target_link_libraries (HYPRE PUBLIC OpenMP::OpenMP_C)
 endif (HYPRE_USING_OPENMP)
+
+if (HYPRE_USING_VNV) 
+  find_package (Injection REQUIRED)
+  link_vnv_file(HYPRE VnVHypre c)
+endif(HYPRE_USING_VNV)
+
+
 
 if (MSVC)
   target_compile_definitions(HYPRE PRIVATE _CRT_SECURE_NO_WARNINGS)
