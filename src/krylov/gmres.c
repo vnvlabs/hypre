@@ -456,11 +456,50 @@ hypre_GMRESSolve(void  *gmres_vdata,
    /* once the rel. change check has passed, we do not want to check it again */
    rel_change_passed = 0;
 
+   /**
+    * Hypre GMRES Solver
+    * ==================
+    *
+    * A Hypre GMRES Solve was completed. The solver was configured with 
+    * the following options:
+    *
+    * .. vnv-table:: 
+    *   
+    *   { "Max Iterations" : $.data.max_iterations.value,
+    *     "Residual Tolerance" : $.data.stopping_tol.value,
+    *	  "Restart Value:" : $.data.restart_value.value	
+    *   }
+    *
+    * The solver converged to a residual tolerance of : :vnv:`$.data.final_residual.value`
+    * in vnv:`$.data.num_its.value` iterations. The overall convergence of the solver is
+    * shown below
+    *
+    * .. vnv-convergence-chart:
+    *    :convergence-factors: $.data[?Name == 'rnorm'].value
+    *    :title: Hypre GMRES Solver Convergence
+    *    :relative: true
+    *    :orders: 1,2
+    * 
+    * .. vnv-if: $.data.plot_solution.value
+    *   
+    *   ..vnv-vector-chart:
+    *      :vector: $.data.x.value
+    *      :title: Solution Vector Plotted against the index
+    *      :log: True
+    *	  
+    */ 
+   INJECTION_LOOP_BEGIN(HYPRE, VWORLD, Begin_GMRES, injection_callback, 
+		   A, x, b, r_norm, iter )
+   
    /* outer iteration cycle */
    while (iter < max_iter)
    {
-      /* initialize first term of hessenberg system */
+      /**
+       * Begining Hypre GMRES Iteratation
+       */ 
+      INJECTION_LOOP_ITER(HYPRE, Begin_GMRES, Begin_Iteration)
 
+      /* initialize first term of hessenberg system */
       rs[0] = r_norm;
       if (r_norm == 0.0)
       {
