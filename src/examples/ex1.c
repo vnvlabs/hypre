@@ -38,6 +38,12 @@
 #include "vis.c"
 #endif
 
+#include "VnV.h"
+
+
+INJECTION_EXECUTABLE(HYPRE_EX1, VNV, mpi)
+INJECTION_SUBPACKAGE(HYPRE_EX1, VnVHypre)
+
 int main (int argc, char *argv[])
 {
    int i, j, myid, num_procs;
@@ -55,6 +61,9 @@ int main (int argc, char *argv[])
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+
+
+   INJECTION_INITIALIZE(HYPRE_EX1, argc, argv, "vv-input.json");
 
    if (num_procs != 2)
    {
@@ -364,11 +373,16 @@ int main (int argc, char *argv[])
    HYPRE_StructVectorDestroy(x);
    HYPRE_StructPCGDestroy(solver);
 
+
    /* Finalize Hypre */
    HYPRE_Finalize();
 
+   INJECTION_FINALIZE(HYPRE_EX1)
+
    /* Finalize MPI */
    MPI_Finalize();
+
+
 
    return (0);
 }

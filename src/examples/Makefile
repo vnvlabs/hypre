@@ -10,13 +10,13 @@ CC        = mpicc
 F77       = mpif77
 CXX       = mpicxx
 F90       = mpifort
-HYPRE_DIR = ../hypre
-
+HYPRE_DIR = /home/ben/software/hypre
+INJECTION_DIR = /home/ben/software/vnv
 ########################################################################
 # Compiling and linking options
 ########################################################################
 COPTS     = -g -Wall
-CINCLUDES = -I$(HYPRE_DIR)/include
+CINCLUDES = -I$(HYPRE_DIR)/include -I$(INJECTION_DIR)/include
 #CDEFS     = -DHYPRE_EXVIS
 CDEFS     = 
 CFLAGS    = $(COPTS) $(CINCLUDES) $(CDEFS)
@@ -33,7 +33,7 @@ F90FLAGS = $(FFLAGS) $(IF90FLAGS)
 
 
 LINKOPTS  = $(COPTS)
-LIBS      = -L$(HYPRE_DIR)/lib -lHYPRE -lm
+LIBS      = -L$(HYPRE_DIR)/lib -L${INJECTION_DIR}/lib -linjection -lHYPRE -lm
 LFLAGS    = $(LINKOPTS) $(LIBS) -lstdc++
 LFLAGS_B =\
  -L${HYPRE_DIR}/lib\
@@ -82,7 +82,7 @@ complex: $(COMPLEXPROGS)
 ########################################################################
 # Example 1
 ########################################################################
-ex1: ex1.o
+ex1: ex1.o vnv_HYPRE_EX1.o
 	$(CC) -o $@ $^ $(LFLAGS)
 
 ########################################################################

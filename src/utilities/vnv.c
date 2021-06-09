@@ -30,12 +30,12 @@ INJECTION_OPTIONS(VnVHypre, hypre_vnv_schema) {
 int vnv_test_function(int x) {
    
 
-  INJECTION_LOOP_BEGIN(VnVHypre, VWORLD(PNAME), SanityCheck, x)
+  INJECTION_LOOP_BEGIN("VnVHypre", VWORLD("VnVHypre"), "SanityCheck", x)
   for (int i = 0; i < 10; i++) {
     x += i;
-    INJECTION_LOOP_ITER(VnVHypre,SanityCheck, inner);
+    INJECTION_LOOP_ITER("VnVHypre","SanityCheck", "inner");
   }
 
-  INJECTION_LOOP_END(VnVHypre,SanityCheck);
+  INJECTION_LOOP_END("VnVHypre","SanityCheck");
   return x;
 }

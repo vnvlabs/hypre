@@ -39,13 +39,17 @@ set(SRCS
   threading.c
   timer.c
   timing.c
-  vnv.c
 )
 
 target_sources(HYPRE
   PRIVATE ${SRCS}
           ${HDRS}
+
   )
+
+if (HYPRE_USING_VNV) 
+  target_sources(HYPRE PRIVATE vnv.c)
+endif()
 
 convert_filenames_to_full_paths(HDRS)
 set(HYPRE_HEADERS ${HYPRE_HEADERS} ${HDRS} PARENT_SCOPE)
