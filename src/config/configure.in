@@ -161,6 +161,11 @@ hypre_using_caliper=no
 hypre_user_gave_caliper_lib=no
 hypre_user_gave_caliper_inc=no
 
+hypre_using_vnv=no
+hypre_user_gave_vnv_lib=no
+hypre_user_gave_vnv_inc=no
+
+
 hypre_found_cuda=no
 
 hypre_using_node_aware_mpi=no
@@ -1368,6 +1373,40 @@ AS_HELP_STRING([--with-caliper-lib=LIBS],
  hypre_user_gave_caliper_lib=yes]
 )
 
+dnl ***** vnv
+
+AC_ARG_WITH(vnv,
+AS_HELP_STRING([--with-vnv],
+               [Use VnV instrumentation (default is NO).]),
+[case "$withval" in
+    yes) hypre_using_vnv=yes;;
+    *)   hypre_using_vnv=no ;;
+esac],
+[hypre_using_vnv=no])
+
+AS_IF([test "x$with_vnv" = "xyes"],
+      [AC_DEFINE(HYPRE_USING_CALIPER, 1, [Define to 1 if VnV instrumentation is enabled])],
+      [])
+
+AC_ARG_WITH(vnv-include,
+AS_HELP_STRING([--with-vnv-include=DIR],
+               [Directory where VV is installed.]),
+[for vnv_inc_dir in $withval; do
+    VNV_INCLUDE="-I$vnv_inc_dir $VNV_INCLUDE"
+ done;
+ hypre_user_gave_vnv_inc=yes]
+)
+
+AC_ARG_WITH(vnv-lib,
+AS_HELP_STRING([--with-vnv-lib=LIBS],
+               [LIBS is space-separated linkable list (enclosed in quotes) of libraries
+                needed for VNV. OK to use -L and -l flags in the list]),
+[for vnv_lib in $withval; do
+   VNV_LIBS="$VNV_LIBS $vnv_lib"
+ done;
+ hypre_user_gave_vnv_lib=yes]
+)
+
 dnl *********************************************************************
 dnl * Select compilers if not already defined by command line options
 dnl *********************************************************************
@@ -1811,6 +1850,31 @@ then
        AC_MSG_WARN([--with-caliper-lib=<path-to-caliper-lib>.])
        AC_MSG_WARN([Using default user library path.])
        AC_MSG_WARN([NOTE: Caliper annotations may not work.])
+       AC_MSG_WARN([*******************************************************])
+   fi
+fi
+
+dnl *********************************************************************
+dnl * Warn if vnv options are incomplete
+dnl *********************************************************************
+if test "$hypre_using_vnv" = "yes"
+then
+   if test "$hypre_user_gave_vnv_inc" != "yes"
+   then
+       AC_MSG_WARN([*******************************************************])
+       AC_MSG_WARN([Configuring with --with-vnv=yes without providing])
+       AC_MSG_WARN([--with-vnv-include=<path-to-vnv-install>.])
+       AC_MSG_WARN([Using default user include path.])
+       AC_MSG_WARN([NOTE: VNV annotations may not work.])
+       AC_MSG_WARN([*******************************************************])
+   fi
+   if test "$hypre_user_gave_vnv_lib" != "yes"
+   then
+       AC_MSG_WARN([*******************************************************])
+       AC_MSG_WARN([Configuring with --with-vnv=yes without providing])
+       AC_MSG_WARN([--with-vnv-lib=<path-to-vnv-lib>.])
+       AC_MSG_WARN([Using default user library path.])
+       AC_MSG_WARN([NOTE: VnV annotations may not work.])
        AC_MSG_WARN([*******************************************************])
    fi
 fi

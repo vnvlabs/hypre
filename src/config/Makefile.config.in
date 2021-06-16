@@ -87,10 +87,10 @@ AR     = @AR@
 RANLIB = @RANLIB@
 
 LDFLAGS = @LDFLAGS@
-LIBS    = @LIBS@ ${CALIPER_LIBS} ${HYPRE_CUDA_LIBS} ${HYPRE_HIP_LIBS} ${HYPRE_RAJA_LIB_DIR} ${HYPRE_RAJA_LIB} ${HYPRE_KOKKOS_LIB_DIR} ${HYPRE_KOKKOS_LIB} ${HYPRE_UMPIRE_LIB_DIR} ${HYPRE_UMPIRE_LIB}
+LIBS    = @LIBS@ ${VNV_LIBS} ${CALIPER_LIBS} ${HYPRE_CUDA_LIBS} ${HYPRE_HIP_LIBS} ${HYPRE_RAJA_LIB_DIR} ${HYPRE_RAJA_LIB} ${HYPRE_KOKKOS_LIB_DIR} ${HYPRE_KOKKOS_LIB} ${HYPRE_UMPIRE_LIB_DIR} ${HYPRE_UMPIRE_LIB}
 FLIBS   = @FLIBS@
 
-INCLUDES = ${CALIPER_INCLUDE} ${HYPRE_CUDA_INCLUDE} ${HYPRE_HIP_INCLUDE} ${HYPRE_RAJA_INCLUDE} ${HYPRE_KOKKOS_INCLUDE} ${HYPRE_UMPIRE_INCLUDE} ${HYPRE_NAP_INCLUDE}
+INCLUDES = ${VNV_INCLUDE} ${CALIPER_INCLUDE} ${HYPRE_CUDA_INCLUDE} ${HYPRE_HIP_INCLUDE} ${HYPRE_RAJA_INCLUDE} ${HYPRE_KOKKOS_INCLUDE} ${HYPRE_UMPIRE_INCLUDE} ${HYPRE_NAP_INCLUDE}
 
 ##################################################################
 ##  LAPACK Library Flags
@@ -134,6 +134,12 @@ HYPRE_HIP_LIBS=@HYPRE_HIP_LIBS@
 ##################################################################
 CALIPER_INCLUDE = @CALIPER_INCLUDE@
 CALIPER_LIBS    = @CALIPER_LIBS@
+
+##################################################################
+##  VnV options
+##################################################################
+VNV_INCLUDE = @CALIPER_INCLUDE@
+VNV_LIBS    = @CALIPER_LIBS@
 
 ##################################################################
 ##  Euclid, ParaSails, pilut options

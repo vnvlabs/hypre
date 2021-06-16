@@ -849,6 +849,9 @@ with_umpire_lib_dirs
 with_caliper
 with_caliper_include
 with_caliper_lib
+with_vnv
+with_vnv_include
+with_vnv_lib
 with_blas
 with_lapack
 '
@@ -1706,6 +1709,11 @@ Optional Packages:
   --with-caliper-lib=LIBS LIBS is space-separated linkable list (enclosed in
                           quotes) of libraries needed for Caliper. OK to use
                           -L and -l flags in the list
+  --with-vnv              Use VnV instrumentation (default is NO).
+  --with-vnv-include=DIR  Directory where VV is installed.
+  --with-vnv-lib=LIBS     LIBS is space-separated linkable list (enclosed in
+                          quotes) of libraries needed for VNV. OK to use -L
+                          and -l flags in the list
   --with-blas             Find a system-provided BLAS library
   --with-lapack           Find a system-provided LAPACK library
 
@@ -2719,6 +2727,11 @@ hypre_using_umpire_pinned=no
 hypre_using_caliper=no
 hypre_user_gave_caliper_lib=no
 hypre_user_gave_caliper_inc=no
+
+hypre_using_vnv=no
+hypre_user_gave_vnv_lib=no
+hypre_user_gave_vnv_inc=no
+
 
 hypre_found_cuda=no
 
@@ -4187,6 +4200,47 @@ if test "${with_caliper_lib+set}" = set; then :
     CALIPER_LIBS="$CALIPER_LIBS $caliper_lib"
  done;
  hypre_user_gave_caliper_lib=yes
+
+fi
+
+
+
+
+# Check whether --with-vnv was given.
+if test "${with_vnv+set}" = set; then :
+  withval=$with_vnv; case "$withval" in
+    yes) hypre_using_vnv=yes;;
+    *)   hypre_using_vnv=no ;;
+esac
+else
+  hypre_using_vnv=no
+fi
+
+
+if test "x$with_vnv" = "xyes"; then :
+
+$as_echo "#define HYPRE_USING_CALIPER 1" >>confdefs.h
+
+fi
+
+
+# Check whether --with-vnv-include was given.
+if test "${with_vnv_include+set}" = set; then :
+  withval=$with_vnv_include; for vnv_inc_dir in $withval; do
+    VNV_INCLUDE="-I$vnv_inc_dir $VNV_INCLUDE"
+ done;
+ hypre_user_gave_vnv_inc=yes
+
+fi
+
+
+
+# Check whether --with-vnv-lib was given.
+if test "${with_vnv_lib+set}" = set; then :
+  withval=$with_vnv_lib; for vnv_lib in $withval; do
+   VNV_LIBS="$VNV_LIBS $vnv_lib"
+ done;
+ hypre_user_gave_vnv_lib=yes
 
 fi
 
@@ -8404,6 +8458,40 @@ $as_echo "$as_me: WARNING: --with-caliper-lib=<path-to-caliper-lib>." >&2;}
 $as_echo "$as_me: WARNING: Using default user library path." >&2;}
        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: NOTE: Caliper annotations may not work." >&5
 $as_echo "$as_me: WARNING: NOTE: Caliper annotations may not work." >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *******************************************************" >&5
+$as_echo "$as_me: WARNING: *******************************************************" >&2;}
+   fi
+fi
+
+if test "$hypre_using_vnv" = "yes"
+then
+   if test "$hypre_user_gave_vnv_inc" != "yes"
+   then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *******************************************************" >&5
+$as_echo "$as_me: WARNING: *******************************************************" >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Configuring with --with-vnv=yes without providing" >&5
+$as_echo "$as_me: WARNING: Configuring with --with-vnv=yes without providing" >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --with-vnv-include=<path-to-vnv-install>." >&5
+$as_echo "$as_me: WARNING: --with-vnv-include=<path-to-vnv-install>." >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Using default user include path." >&5
+$as_echo "$as_me: WARNING: Using default user include path." >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: NOTE: VNV annotations may not work." >&5
+$as_echo "$as_me: WARNING: NOTE: VNV annotations may not work." >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *******************************************************" >&5
+$as_echo "$as_me: WARNING: *******************************************************" >&2;}
+   fi
+   if test "$hypre_user_gave_vnv_lib" != "yes"
+   then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *******************************************************" >&5
+$as_echo "$as_me: WARNING: *******************************************************" >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Configuring with --with-vnv=yes without providing" >&5
+$as_echo "$as_me: WARNING: Configuring with --with-vnv=yes without providing" >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --with-vnv-lib=<path-to-vnv-lib>." >&5
+$as_echo "$as_me: WARNING: --with-vnv-lib=<path-to-vnv-lib>." >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Using default user library path." >&5
+$as_echo "$as_me: WARNING: Using default user library path." >&2;}
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: NOTE: VnV annotations may not work." >&5
+$as_echo "$as_me: WARNING: NOTE: VnV annotations may not work." >&2;}
        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: *******************************************************" >&5
 $as_echo "$as_me: WARNING: *******************************************************" >&2;}
    fi

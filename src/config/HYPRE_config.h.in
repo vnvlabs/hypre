@@ -142,7 +142,7 @@
 /* Using HYPRE timing routines */
 #undef HYPRE_TIMING
 
-/* Define to 1 if Caliper instrumentation is enabled */
+/* Define to 1 if VnV instrumentation is enabled */
 #undef HYPRE_USING_CALIPER
 
 /* Define to 1 if using cuBLAS */
