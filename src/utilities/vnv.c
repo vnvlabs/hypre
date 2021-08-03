@@ -1,11 +1,7 @@
 #include <stddef.h>
 #include "VnV.h"
 
-#ifndef HYPRE_SEQUENTIAL
-INJECTION_EXECUTABLE(VnVHypre, VNV, mpi) 
-#else
-INJECTION_EXECUTABLE(VnVHypre, VNV, serial) 
-#endif
+INJECTION_EXECUTABLE(VnVHypre) 
 
 static const char* hypre_vnv_schema = "{\"type\": \"object\", \"required\":[]}";
 
@@ -30,7 +26,8 @@ INJECTION_OPTIONS(VnVHypre, hypre_vnv_schema) {
 int vnv_test_function(int x) {
    
 
-  INJECTION_LOOP_BEGIN("VnVHypre", VWORLD("VnVHypre"), "SanityCheck", x)
+  INJECTION_LOOP_BEGIN("VnVHypre", VWORLD, "SanityCheck", x);
+  
   for (int i = 0; i < 10; i++) {
     x += i;
     INJECTION_LOOP_ITER("VnVHypre","SanityCheck", "inner");
