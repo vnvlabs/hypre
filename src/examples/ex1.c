@@ -38,11 +38,8 @@
 #include "vis.c"
 #endif
 
-#include "VnV.h"
 
 
-INJECTION_EXECUTABLE(HYPRE_EX1)
-INJECTION_SUBPACKAGE(HYPRE_EX1, VnVHypre)
 
 int main (int argc, char *argv[])
 {
@@ -63,7 +60,6 @@ int main (int argc, char *argv[])
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
 
-   INJECTION_INITIALIZE(HYPRE_EX1, argc, argv, "vv-input.json");
 
    if (num_procs != 2)
    {
@@ -377,7 +373,6 @@ int main (int argc, char *argv[])
    /* Finalize Hypre */
    HYPRE_Finalize();
 
-   INJECTION_FINALIZE(HYPRE_EX1)
 
    /* Finalize MPI */
    MPI_Finalize();
