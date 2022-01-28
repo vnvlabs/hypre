@@ -11,4 +11,6 @@ config.status
 Makefile.config
 HYPRE_config.h
 autom4te.cache
+src/hypre/*
+
 src/build/*
