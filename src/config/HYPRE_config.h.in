@@ -62,6 +62,15 @@
 /* Define to 1 if in debug mode */
 #undef HYPRE_DEBUG
 
+/* Main development branch? */
+#undef HYPRE_DEVELOP_BRANCH
+
+/* Develop branch commit number */
+#undef HYPRE_DEVELOP_NUMBER
+
+/* Develop branch string */
+#undef HYPRE_DEVELOP_STRING
+
 /* Define to 1 if using OpenMP on device [target alloc version] */
 #undef HYPRE_DEVICE_OPENMP_ALLOC
 
@@ -121,10 +130,13 @@
 /* Release name */
 #undef HYPRE_RELEASE_NAME
 
+/* Release number */
+#undef HYPRE_RELEASE_NUMBER
+
 /* Time of release */
 #undef HYPRE_RELEASE_TIME
 
-/* Version number */
+/* Release version */
 #undef HYPRE_RELEASE_VERSION
 
 /* Define to 1 for RS6000 platforms */
@@ -148,13 +160,10 @@
 /* Define to 1 if using cuBLAS */
 #undef HYPRE_USING_CUBLAS
 
-/* Define to 1 if using CUB */
-#undef HYPRE_USING_CUB_ALLOCATOR
-
 /* Define to 1 if executing on device with CUDA */
 #undef HYPRE_USING_CUDA
 
-/* Define to 1 if using CUDA streams */
+/* Define to 1 if using streams */
 #undef HYPRE_USING_CUDA_STREAMS
 
 /* Define to 1 if using cuRAND */
@@ -168,6 +177,9 @@
 
 /* Define to 1 if executing on device with OpenMP */
 #undef HYPRE_USING_DEVICE_OPENMP
+
+/* Define to 1 if using device pooling allocator */
+#undef HYPRE_USING_DEVICE_POOL
 
 /* Define to 1 if using DSuperLU */
 #undef HYPRE_USING_DSUPERLU
@@ -202,8 +214,17 @@
 /* Define to 1 if Node Aware MPI library is used */
 #undef HYPRE_USING_NODE_AWARE_MPI
 
-/* NVTX being used */
+/* Define to 1 if using NVIDIA Tools Extension (NVTX) */
 #undef HYPRE_USING_NVTX
+
+/* onemkl::BLAS being used */
+#undef HYPRE_USING_ONEMKLBLAS
+
+/* onemkl::rng being used */
+#undef HYPRE_USING_ONEMKLRAND
+
+/* onemkl::SPARSE being used */
+#undef HYPRE_USING_ONEMKLSPARSE
 
 /* Enable OpenMP support */
 #undef HYPRE_USING_OPENMP
@@ -225,6 +246,9 @@
 
 /* Define to 1 if using AMD rocTX profiling */
 #undef HYPRE_USING_ROCTX
+
+/* SYCL being used */
+#undef HYPRE_USING_SYCL
 
 /* Define to 1 if using UMPIRE */
 #undef HYPRE_USING_UMPIRE

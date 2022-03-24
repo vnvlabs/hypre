@@ -6,6 +6,7 @@
 *.err.*
 *.err
 *.out
+*.perf
 config.log
 config.status
 Makefile.config
@@ -14,3 +15,23 @@ autom4te.cache
 src/hypre/*
 
 src/build/*
+src/TAGS
+hypre/
+
+###############
+# Executables
+###############
+src/test/ams_driver
+src/test/ij
+src/test/ij_assembly
+src/test/ij_mv
+src/test/maxwell_unscaled
+src/test/sstruct
+src/test/sstruct_fac
+src/test/struct
+src/test/struct_migrate
+src/test/zboxloop
+src/examples/ex[0-9]
+src/examples/ex1[0-6]
+src/examples/ex5f
+src/examples/ex12f

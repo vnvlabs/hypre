@@ -30,7 +30,7 @@ HYPRE_CSRMatrixCreate( HYPRE_Int  num_rows,
    matrix_i[0] = 0;
    for (i = 0; i < num_rows; i++)
    {
-      matrix_i[i+1] = matrix_i[i] + row_sizes[i];
+      matrix_i[i + 1] = matrix_i[i] + row_sizes[i];
    }
 
    matrix = hypre_CSRMatrixCreate(num_rows, num_cols, matrix_i[num_rows]);
@@ -46,7 +46,7 @@ HYPRE_CSRMatrixCreate( HYPRE_Int  num_rows,
 HYPRE_Int
 HYPRE_CSRMatrixDestroy( HYPRE_CSRMatrix matrix )
 {
-   return( hypre_CSRMatrixDestroy( (hypre_CSRMatrix *) matrix ) );
+   return ( hypre_CSRMatrixDestroy( (hypre_CSRMatrix *) matrix ) );
 }
 
 /*--------------------------------------------------------------------------
@@ -93,14 +93,5 @@ HYPRE_CSRMatrixGetNumRows( HYPRE_CSRMatrix matrix, HYPRE_Int *num_rows )
    *num_rows =  hypre_CSRMatrixNumRows( csr_matrix );
 
    return 0;
-}
-
-/*--------------------------------------------------------------------------
- * HYPRE_CSRMatrixSetSpGemmUseCusparse
- *--------------------------------------------------------------------------*/
-HYPRE_Int
-HYPRE_CSRMatrixSetSpGemmUseCusparse( HYPRE_Int use_cusparse )
-{
-   return hypre_CSRMatrixDeviceSpGemmSetUseCusparse(use_cusparse);
 }
 

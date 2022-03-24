@@ -16,12 +16,12 @@
 #ifndef hypre_CSR_MATRIX_HEADER
 #define hypre_CSR_MATRIX_HEADER
 
-#if defined(HYPRE_USING_CUSPARSE)
+#if defined(HYPRE_USING_CUSPARSE) || defined(HYPRE_USING_ROCSPARSE) || defined(HYPRE_USING_ONEMKLSPARSE)
 struct hypre_CsrsvData;
 typedef struct hypre_CsrsvData hypre_CsrsvData;
 #endif
 
-#if defined(HYPRE_USING_CUSPARSE) || defined(HYPRE_USING_ROCSPARSE)
+#if defined(HYPRE_USING_CUSPARSE) || defined(HYPRE_USING_ROCSPARSE) || defined(HYPRE_USING_ONEMKLSPARSE)
 struct hypre_GpuMatData;
 typedef struct hypre_GpuMatData hypre_GpuMatData;
 #endif
@@ -45,14 +45,11 @@ typedef struct
    HYPRE_Int            *rownnz;          /* for compressing rows in matrix multiplication  */
    HYPRE_Int             num_rownnz;
    HYPRE_MemoryLocation  memory_location; /* memory location of arrays i, j, data */
-#if defined(HYPRE_USING_CUSPARSE)
+#if defined(HYPRE_USING_CUSPARSE) || defined(HYPRE_USING_ROCSPARSE) || defined(HYPRE_USING_ONEMKLSPARSE)
    HYPRE_Int            *sorted_j;        /* some cusparse routines require sorted CSR */
    HYPRE_Complex        *sorted_data;
    hypre_CsrsvData      *csrsv_data;
-#endif
-
-#if defined(HYPRE_USING_CUSPARSE) || defined(HYPRE_USING_ROCSPARSE)
-  hypre_GpuMatData      *mat_data;
+   hypre_GpuMatData     *mat_data;
 #endif
 } hypre_CSRMatrix;
 
@@ -72,16 +69,11 @@ typedef struct
 #define hypre_CSRMatrixOwnsData(matrix)             ((matrix) -> owns_data)
 #define hypre_CSRMatrixMemoryLocation(matrix)       ((matrix) -> memory_location)
 
-#if defined(HYPRE_USING_CUSPARSE)
+#if defined(HYPRE_USING_CUSPARSE) || defined(HYPRE_USING_ROCSPARSE) || defined(HYPRE_USING_ONEMKLSPARSE)
 #define hypre_CSRMatrixSortedJ(matrix)              ((matrix) -> sorted_j)
 #define hypre_CSRMatrixSortedData(matrix)           ((matrix) -> sorted_data)
 #define hypre_CSRMatrixCsrsvData(matrix)            ((matrix) -> csrsv_data)
-#endif
-
-#if defined(HYPRE_USING_CUSPARSE) || defined(HYPRE_USING_ROCSPARSE)
 #define hypre_CSRMatrixGPUMatData(matrix)           ((matrix) -> mat_data)
-#define hypre_CSRMatrixGPUMatDescr(matrix)          (hypre_GpuMatDataMatDecsr((matrix) -> mat_data))
-#define hypre_CSRMatrixGPUMatInfo(matrix)           (hypre_GpuMatDataMatInfo((matrix) -> mat_data))
 #endif
 
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionBegin( hypre_CSRMatrix *A );

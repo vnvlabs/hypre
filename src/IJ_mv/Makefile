@@ -68,7 +68,7 @@ install: libHYPRE_IJ_mv${HYPRE_LIB_SUFFIX}
 #	cp -fR libHYPRE* $(HYPRE_LIB_INSTALL)
 
 clean:
-	rm -f *.o* libHYPRE*
+	rm -f *.o *.obj libHYPRE*
 	rm -rf pchdir tca.map *inslog*
 
 distclean: clean
@@ -85,6 +85,6 @@ libHYPRE_IJ_mv.a: ${OBJS}
 libHYPRE_IJ_mv.so libHYPRE_IJ_mv.dylib: ${OBJS}
 	@echo  "Building $@ ... "
 	${BUILD_CC_SHARED} -o ${SONAME} ${OBJS} ${SHARED_SET_SONAME}${SONAME}
-	ln -s ${SONAME} $@
+	ln -s -f ${SONAME} $@
 
 ${OBJS}: ${HEADERS}

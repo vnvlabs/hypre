@@ -27,9 +27,7 @@ HYPRE_IJMatrixCreate( MPI_Comm        comm,
                       HYPRE_BigInt    jupper,
                       HYPRE_IJMatrix *matrix )
 {
-   HYPRE_BigInt *row_partitioning;
-   HYPRE_BigInt *col_partitioning;
-   HYPRE_BigInt *info;
+   HYPRE_BigInt info[2];
    HYPRE_Int num_procs;
    HYPRE_Int myid;
 
@@ -37,7 +35,7 @@ HYPRE_IJMatrixCreate( MPI_Comm        comm,
 
    HYPRE_BigInt  row0, col0, rowN, colN;
 
-   ijmatrix = hypre_CTAlloc(hypre_IJMatrix,  1, HYPRE_MEMORY_HOST);
+   ijmatrix = hypre_CTAlloc(hypre_IJMatrix, 1, HYPRE_MEMORY_HOST);
 
    hypre_IJMatrixComm(ijmatrix)           = comm;
    hypre_IJMatrixObject(ijmatrix)         = NULL;
@@ -48,11 +46,11 @@ HYPRE_IJMatrixCreate( MPI_Comm        comm,
    hypre_IJMatrixPrintLevel(ijmatrix)     = 0;
    hypre_IJMatrixOMPFlag(ijmatrix)        = 0;
 
-   hypre_MPI_Comm_size(comm,&num_procs);
+   hypre_MPI_Comm_size(comm, &num_procs);
    hypre_MPI_Comm_rank(comm, &myid);
 
 
-   if (ilower > iupper+1 || ilower < 0)
+   if (ilower > iupper + 1 || ilower < 0)
    {
       hypre_error_in_arg(2);
       hypre_TFree(ijmatrix, HYPRE_MEMORY_HOST);
@@ -66,7 +64,7 @@ HYPRE_IJMatrixCreate( MPI_Comm        comm,
       return hypre_error_flag;
    }
 
-   if (jlower > jupper+1 || jlower < 0)
+   if (jlower > jupper + 1 || jlower < 0)
    {
       hypre_error_in_arg(4);
       hypre_TFree(ijmatrix, HYPRE_MEMORY_HOST);
@@ -80,15 +78,10 @@ HYPRE_IJMatrixCreate( MPI_Comm        comm,
       return hypre_error_flag;
    }
 
-   info = hypre_CTAlloc(HYPRE_BigInt, 2, HYPRE_MEMORY_HOST);
-
-   row_partitioning = hypre_CTAlloc(HYPRE_BigInt, 2, HYPRE_MEMORY_HOST);
-   col_partitioning = hypre_CTAlloc(HYPRE_BigInt, 2, HYPRE_MEMORY_HOST);
-
-   row_partitioning[0] = ilower;
-   row_partitioning[1] = iupper+1;
-   col_partitioning[0] = jlower;
-   col_partitioning[1] = jupper+1;
+   hypre_IJMatrixRowPartitioning(ijmatrix)[0] = ilower;
+   hypre_IJMatrixRowPartitioning(ijmatrix)[1] = iupper + 1;
+   hypre_IJMatrixColPartitioning(ijmatrix)[0] = jlower;
+   hypre_IJMatrixColPartitioning(ijmatrix)[1] = jupper + 1;
 
    /* now we need the global number of rows and columns as well
       as the global first row and column index */
@@ -104,12 +97,12 @@ HYPRE_IJMatrixCreate( MPI_Comm        comm,
    col0 = info[1];
 
    /* proc (num_procs-1) has the last row and col */
-   if (myid == (num_procs-1))
+   if (myid == (num_procs - 1))
    {
       info[0] = iupper;
       info[1] = jupper;
    }
-   hypre_MPI_Bcast(info, 2, HYPRE_MPI_BIG_INT, num_procs-1, comm);
+   hypre_MPI_Bcast(info, 2, HYPRE_MPI_BIG_INT, num_procs - 1, comm);
 
    rowN = info[0];
    colN = info[1];
@@ -118,11 +111,6 @@ HYPRE_IJMatrixCreate( MPI_Comm        comm,
    hypre_IJMatrixGlobalFirstCol(ijmatrix) = col0;
    hypre_IJMatrixGlobalNumRows(ijmatrix) = rowN - row0 + 1;
    hypre_IJMatrixGlobalNumCols(ijmatrix) = colN - col0 + 1;
-
-   hypre_TFree(info, HYPRE_MEMORY_HOST);
-
-   hypre_IJMatrixRowPartitioning(ijmatrix) = row_partitioning;
-   hypre_IJMatrixColPartitioning(ijmatrix) = col_partitioning;
 
    *matrix = (HYPRE_IJMatrix) ijmatrix;
 
@@ -145,16 +133,6 @@ HYPRE_IJMatrixDestroy( HYPRE_IJMatrix matrix )
 
    if (ijmatrix)
    {
-      if (hypre_IJMatrixRowPartitioning(ijmatrix) ==
-          hypre_IJMatrixColPartitioning(ijmatrix))
-      {
-         hypre_TFree(hypre_IJMatrixRowPartitioning(ijmatrix), HYPRE_MEMORY_HOST);
-      }
-      else
-      {
-         hypre_TFree(hypre_IJMatrixRowPartitioning(ijmatrix), HYPRE_MEMORY_HOST);
-         hypre_TFree(hypre_IJMatrixColPartitioning(ijmatrix), HYPRE_MEMORY_HOST);
-      }
       if hypre_IJMatrixAssumedPart(ijmatrix)
       {
          hypre_AssumedPartitionDestroy((hypre_IJAssumedPart*)hypre_IJMatrixAssumedPart(ijmatrix));
@@ -264,42 +242,44 @@ hypre_PrefixSumInt(HYPRE_Int   nvals,
    if (nvals < nthreads || bsize == 1)
    {
       sums[0] = 0;
-      for (j=1; j < nvals; j++)
-         sums[j] += sums[j-1] + vals[j-1];
+      for (j = 1; j < nvals; j++)
+      {
+         sums[j] += sums[j - 1] + vals[j - 1];
+      }
    }
    else
    {
 
       /* Compute preliminary partial sums (in parallel) within each interval */
 #ifdef HYPRE_USING_OPENMP
-#pragma omp parallel for private(j) HYPRE_SMP_SCHEDULE
+      #pragma omp parallel for private(j) HYPRE_SMP_SCHEDULE
 #endif
       for (j = 0; j < nvals; j += bsize)
       {
-         HYPRE_Int  i, n = hypre_min((j+bsize), nvals);
+         HYPRE_Int  i, n = hypre_min((j + bsize), nvals);
 
-         sums[0] = 0;
-         for (i = j+1; i < n; i++)
+         sums[j] = 0;
+         for (i = j + 1; i < n; i++)
          {
-            sums[i] = sums[i-1] + vals[i-1];
+            sums[i] = sums[i - 1] + vals[i - 1];
          }
       }
 
       /* Compute final partial sums (in serial) for the first entry of every interval */
       for (j = bsize; j < nvals; j += bsize)
       {
-         sums[j] = sums[j-bsize] + sums[j-1] + vals[j-1];
+         sums[j] = sums[j - bsize] + sums[j - 1] + vals[j - 1];
       }
 
       /* Compute final partial sums (in parallel) for the remaining entries */
 #ifdef HYPRE_USING_OPENMP
-#pragma omp parallel for private(j) HYPRE_SMP_SCHEDULE
+      #pragma omp parallel for private(j) HYPRE_SMP_SCHEDULE
 #endif
       for (j = bsize; j < nvals; j += bsize)
       {
-         HYPRE_Int  i, n = hypre_min((j+bsize), nvals);
+         HYPRE_Int  i, n = hypre_min((j + bsize), nvals);
 
-         for (i = j+1; i < n; i++)
+         for (i = j + 1; i < n; i++)
          {
             sums[i] += sums[j];
          }
@@ -438,7 +418,8 @@ HYPRE_IJMatrixSetValues2( HYPRE_IJMatrix       matrix,
 
    if (exec == HYPRE_EXEC_DEVICE)
    {
-      hypre_IJMatrixSetAddValuesParCSRDevice(ijmatrix, nrows, ncols, rows, row_indexes, cols, values, "set");
+      hypre_IJMatrixSetAddValuesParCSRDevice(ijmatrix, nrows, ncols, rows, row_indexes, cols, values,
+                                             "set");
    }
    else
 #endif
@@ -500,7 +481,7 @@ HYPRE_IJMatrixSetConstantValues( HYPRE_IJMatrix matrix, HYPRE_Complex value)
 
    if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
    {
-      return( hypre_IJMatrixSetConstantValuesParCSR( ijmatrix, value));
+      return ( hypre_IJMatrixSetConstantValuesParCSR( ijmatrix, value));
    }
    else
    {
@@ -645,7 +626,8 @@ HYPRE_IJMatrixAddToValues2( HYPRE_IJMatrix       matrix,
 
    if (exec == HYPRE_EXEC_DEVICE)
    {
-      hypre_IJMatrixSetAddValuesParCSRDevice(ijmatrix, nrows, ncols, rows, row_indexes, cols, values, "add");
+      hypre_IJMatrixSetAddValuesParCSRDevice(ijmatrix, nrows, ncols, rows, row_indexes, cols, values,
+                                             "add");
    }
    else
 #endif
@@ -713,12 +695,12 @@ HYPRE_IJMatrixAssemble( HYPRE_IJMatrix matrix )
 
       if (exec == HYPRE_EXEC_DEVICE)
       {
-         return( hypre_IJMatrixAssembleParCSRDevice( ijmatrix ) );
+         return ( hypre_IJMatrixAssembleParCSRDevice( ijmatrix ) );
       }
       else
 #endif
       {
-         return( hypre_IJMatrixAssembleParCSR( ijmatrix ) );
+         return ( hypre_IJMatrixAssembleParCSR( ijmatrix ) );
       }
    }
    else
@@ -892,11 +874,9 @@ HYPRE_IJMatrixGetLocalRange( HYPRE_IJMatrix  matrix,
                              HYPRE_BigInt   *jlower,
                              HYPRE_BigInt   *jupper )
 {
-   hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
-   MPI_Comm comm;
-   HYPRE_BigInt *row_partitioning;
-   HYPRE_BigInt *col_partitioning;
-   HYPRE_Int my_id;
+   hypre_IJMatrix  *ijmatrix = (hypre_IJMatrix *) matrix;
+   HYPRE_BigInt    *row_partitioning;
+   HYPRE_BigInt    *col_partitioning;
 
    if (!ijmatrix)
    {
@@ -904,16 +884,13 @@ HYPRE_IJMatrixGetLocalRange( HYPRE_IJMatrix  matrix,
       return hypre_error_flag;
    }
 
-   comm = hypre_IJMatrixComm(ijmatrix);
    row_partitioning = hypre_IJMatrixRowPartitioning(ijmatrix);
    col_partitioning = hypre_IJMatrixColPartitioning(ijmatrix);
 
-   hypre_MPI_Comm_rank(comm, &my_id);
-
    *ilower = row_partitioning[0];
-   *iupper = row_partitioning[1]-1;
+   *iupper = row_partitioning[1] - 1;
    *jlower = col_partitioning[0];
-   *jupper = col_partitioning[1]-1;
+   *jupper = col_partitioning[1] - 1;
 
    return hypre_error_flag;
 }
@@ -965,7 +942,7 @@ HYPRE_IJMatrixSetRowSizes( HYPRE_IJMatrix   matrix,
 
    if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
    {
-      return( hypre_IJMatrixSetRowSizesParCSR( ijmatrix , sizes ) );
+      return ( hypre_IJMatrixSetRowSizesParCSR( ijmatrix, sizes ) );
    }
    else
    {
@@ -1021,8 +998,8 @@ HYPRE_IJMatrixSetMaxOffProcElmts( HYPRE_IJMatrix matrix,
 
    if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
    {
-      return( hypre_IJMatrixSetMaxOffProcElmtsParCSR(ijmatrix,
-                                                     max_off_proc_elmts) );
+      return ( hypre_IJMatrixSetMaxOffProcElmtsParCSR(ijmatrix,
+                                                      max_off_proc_elmts) );
    }
    else
    {
@@ -1033,6 +1010,8 @@ HYPRE_IJMatrixSetMaxOffProcElmts( HYPRE_IJMatrix matrix,
 }
 
 /*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixRead
+ * create IJMatrix on host memory
  *--------------------------------------------------------------------------*/
 
 HYPRE_Int
@@ -1052,7 +1031,7 @@ HYPRE_IJMatrixRead( const char     *filename,
 
    hypre_MPI_Comm_rank(comm, &myid);
 
-   hypre_sprintf(new_filename,"%s.%05d", filename, myid);
+   hypre_sprintf(new_filename, "%s.%05d", filename, myid);
 
    if ((file = fopen(new_filename, "r")) == NULL)
    {
@@ -1097,26 +1076,13 @@ HYPRE_IJMatrixRead( const char     *filename,
 }
 
 /*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixPrint
  *--------------------------------------------------------------------------*/
 
 HYPRE_Int
 HYPRE_IJMatrixPrint( HYPRE_IJMatrix  matrix,
                      const char     *filename )
 {
-   MPI_Comm        comm;
-   HYPRE_BigInt   *row_partitioning;
-   HYPRE_BigInt   *col_partitioning;
-   HYPRE_BigInt    ilower, iupper, jlower, jupper;
-   HYPRE_BigInt    i, ii;
-   HYPRE_Int       j;
-   HYPRE_Int       ncols;
-   HYPRE_BigInt   *cols;
-   HYPRE_Complex   *values;
-   HYPRE_Int       myid;
-   char            new_filename[255];
-   FILE           *file;
-   void           *object;
-
    if (!matrix)
    {
       hypre_error_in_arg(1);
@@ -1129,62 +1095,28 @@ HYPRE_IJMatrixPrint( HYPRE_IJMatrix  matrix,
       return hypre_error_flag;
    }
 
-   comm = hypre_IJMatrixComm(matrix);
-   hypre_MPI_Comm_rank(comm, &myid);
-
-   hypre_sprintf(new_filename,"%s.%05d", filename, myid);
-
-   if ((file = fopen(new_filename, "w")) == NULL)
-   {
-      hypre_error_in_arg(2);
-      return hypre_error_flag;
-   }
-
-   row_partitioning = hypre_IJMatrixRowPartitioning(matrix);
-   col_partitioning = hypre_IJMatrixColPartitioning(matrix);
-   ilower = row_partitioning[0];
-   iupper = row_partitioning[1] - 1;
-   jlower = col_partitioning[0];
-   jupper = col_partitioning[1] - 1;
-   hypre_fprintf(file, "%b %b %b %b\n", ilower, iupper, jlower, jupper);
-
+   void *object;
    HYPRE_IJMatrixGetObject(matrix, &object);
+   HYPRE_ParCSRMatrix par_csr = (HYPRE_ParCSRMatrix) object;
 
-   for (i = ilower; i <= iupper; i++)
+   HYPRE_MemoryLocation memory_location = hypre_IJMatrixMemoryLocation(matrix);
+
+   if ( hypre_GetActualMemLocation(memory_location) == hypre_MEMORY_HOST )
    {
-      if ( hypre_IJMatrixObjectType(matrix) == HYPRE_PARCSR )
-      {
-         ii = i -  hypre_IJMatrixGlobalFirstRow(matrix);
-         HYPRE_ParCSRMatrixGetRow((HYPRE_ParCSRMatrix) object,
-                                  ii, &ncols, &cols, &values);
-         for (j = 0; j < ncols; j++)
-         {
-            cols[j] +=  hypre_IJMatrixGlobalFirstCol(matrix);
-         }
-      }
-
-      for (j = 0; j < ncols; j++)
-      {
-         hypre_fprintf(file, "%b %b %.14e\n", i, cols[j], values[j]);
-      }
-
-      if ( hypre_IJMatrixObjectType(matrix) == HYPRE_PARCSR )
-      {
-         for (j = 0; j < ncols; j++)
-         {
-            cols[j] -=  hypre_IJMatrixGlobalFirstCol(matrix);
-         }
-         HYPRE_ParCSRMatrixRestoreRow((HYPRE_ParCSRMatrix) object,
-                                      ii, &ncols, &cols, &values);
-      }
+      hypre_ParCSRMatrixPrintIJ(par_csr, 0, 0, filename);
    }
-
-   fclose(file);
+   else
+   {
+      HYPRE_ParCSRMatrix par_csr2 = hypre_ParCSRMatrixClone_v2(par_csr, 1, HYPRE_MEMORY_HOST);
+      hypre_ParCSRMatrixPrintIJ(par_csr2, 0, 0, filename);
+      hypre_ParCSRMatrixDestroy(par_csr2);
+   }
 
    return hypre_error_flag;
 }
 
 /*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixSetOMPFlag
  *--------------------------------------------------------------------------*/
 
 HYPRE_Int
@@ -1200,6 +1132,168 @@ HYPRE_IJMatrixSetOMPFlag( HYPRE_IJMatrix matrix,
    }
 
    hypre_IJMatrixOMPFlag(ijmatrix) = omp_flag;
+
+   return hypre_error_flag;
+}
+
+/*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixTranspose
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJMatrixTranspose( HYPRE_IJMatrix  matrix_A,
+                         HYPRE_IJMatrix *matrix_AT )
+{
+   hypre_IJMatrix   *ij_A = (hypre_IJMatrix *) matrix_A;
+   hypre_IJMatrix   *ij_AT;
+   HYPRE_Int         i;
+
+   if (!ij_A)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   ij_AT = hypre_CTAlloc(hypre_IJMatrix, 1, HYPRE_MEMORY_HOST);
+
+   hypre_IJMatrixComm(ij_AT)           = hypre_IJMatrixComm(ij_A);
+   hypre_IJMatrixObject(ij_AT)         = NULL;
+   hypre_IJMatrixTranslator(ij_AT)     = NULL;
+   hypre_IJMatrixAssumedPart(ij_AT)    = NULL;
+   hypre_IJMatrixObjectType(ij_AT)     = hypre_IJMatrixObjectType(ij_A);
+   hypre_IJMatrixAssembleFlag(ij_AT)   = 1;
+   hypre_IJMatrixPrintLevel(ij_AT)     = hypre_IJMatrixPrintLevel(ij_A);
+   hypre_IJMatrixGlobalFirstRow(ij_AT) = hypre_IJMatrixGlobalFirstCol(ij_A);
+   hypre_IJMatrixGlobalFirstCol(ij_AT) = hypre_IJMatrixGlobalFirstRow(ij_A);
+   hypre_IJMatrixGlobalNumRows(ij_AT)  = hypre_IJMatrixGlobalNumCols(ij_A);
+   hypre_IJMatrixGlobalNumCols(ij_AT)  = hypre_IJMatrixGlobalNumRows(ij_A);
+
+   for (i = 0; i < 2; i++)
+   {
+      hypre_IJMatrixRowPartitioning(ij_AT)[i] = hypre_IJMatrixColPartitioning(ij_A)[i];
+      hypre_IJMatrixColPartitioning(ij_AT)[i] = hypre_IJMatrixRowPartitioning(ij_A)[i];
+   }
+
+   if (hypre_IJMatrixObjectType(ij_A) == HYPRE_PARCSR)
+   {
+      hypre_IJMatrixTransposeParCSR(ij_A, ij_AT);
+   }
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   *matrix_AT = (HYPRE_IJMatrix) ij_AT;
+
+   return hypre_error_flag;
+}
+
+/*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixNorm
+ *
+ *  TODO: Add other norms
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJMatrixNorm( HYPRE_IJMatrix  matrix,
+                    HYPRE_Real     *norm )
+{
+   hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
+
+   if (!ijmatrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   if (hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR)
+   {
+      hypre_IJMatrixNormParCSR(ijmatrix, norm);
+   }
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   return hypre_error_flag;
+}
+
+/*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixAdd
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJMatrixAdd( HYPRE_Complex    alpha,
+                   HYPRE_IJMatrix   matrix_A,
+                   HYPRE_Complex    beta,
+                   HYPRE_IJMatrix   matrix_B,
+                   HYPRE_IJMatrix  *matrix_C )
+{
+   hypre_IJMatrix   *ij_A = (hypre_IJMatrix *) matrix_A;
+   hypre_IJMatrix   *ij_B = (hypre_IJMatrix *) matrix_B;
+   hypre_IJMatrix   *ij_C;
+
+   HYPRE_BigInt     *row_partitioning_A;
+   HYPRE_BigInt     *col_partitioning_A;
+   HYPRE_BigInt     *row_partitioning_B;
+   HYPRE_BigInt     *col_partitioning_B;
+   HYPRE_Int         i;
+
+   if (!ij_A)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   /* Check if A and B have the same row/col partitionings */
+   row_partitioning_A = hypre_IJMatrixRowPartitioning(ij_A);
+   row_partitioning_B = hypre_IJMatrixRowPartitioning(ij_B);
+   col_partitioning_A = hypre_IJMatrixColPartitioning(ij_A);
+   col_partitioning_B = hypre_IJMatrixColPartitioning(ij_B);
+   for (i = 0; i < 2; i++)
+   {
+      if (row_partitioning_A[i] != row_partitioning_B[i])
+      {
+         hypre_error_w_msg(HYPRE_ERROR_GENERIC,
+                           "Input matrices must have same row partitioning!");
+         return hypre_error_flag;
+      }
+
+      if (col_partitioning_A[i] != col_partitioning_B[i])
+      {
+         hypre_error_w_msg(HYPRE_ERROR_GENERIC,
+                           "Input matrices must have same col partitioning!");
+         return hypre_error_flag;
+      }
+   }
+
+   ij_C = hypre_CTAlloc(hypre_IJMatrix, 1, HYPRE_MEMORY_HOST);
+
+   hypre_IJMatrixComm(ij_C)            = hypre_IJMatrixComm(ij_A);
+   hypre_IJMatrixObject(ij_C)          = NULL;
+   hypre_IJMatrixTranslator(ij_C)      = NULL;
+   hypre_IJMatrixAssumedPart(ij_C)     = NULL;
+   hypre_IJMatrixObjectType(ij_C)      = hypre_IJMatrixObjectType(ij_A);
+   hypre_IJMatrixAssembleFlag(ij_C)    = 1;
+   hypre_IJMatrixPrintLevel(ij_C)      = hypre_IJMatrixPrintLevel(ij_A);
+
+   /* Copy row/col partitioning of A to C */
+   for (i = 0; i < 2; i++)
+   {
+      hypre_IJMatrixRowPartitioning(ij_C)[i] = row_partitioning_A[i];
+      hypre_IJMatrixColPartitioning(ij_C)[i] = col_partitioning_A[i];
+   }
+
+   if (hypre_IJMatrixObjectType(ij_A) == HYPRE_PARCSR)
+   {
+      hypre_IJMatrixAddParCSR(alpha, ij_A, beta, ij_B, ij_C);
+   }
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   *matrix_C = (HYPRE_IJMatrix) ij_C;
 
    return hypre_error_flag;
 }

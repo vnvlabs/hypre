@@ -15,8 +15,10 @@
  * BoxLoop macros:
  *--------------------------------------------------------------------------*/
 
-#ifndef HYPRE_NEWBOXLOOP_HEADER
-#define HYPRE_NEWBOXLOOP_HEADER
+#ifndef HYPRE_BOXLOOP_HOST_HEADER
+#define HYPRE_BOXLOOP_HOST_HEADER
+
+#if !defined(HYPRE_USING_RAJA) && !defined(HYPRE_USING_KOKKOS) && !defined(HYPRE_USING_CUDA) && !defined(HYPRE_USING_HIP) && !defined(HYPRE_USING_DEVICE_OPENMP) && !defined(HYPRE_USING_SYCL)
 
 #ifdef HYPRE_USING_OPENMP
 #define HYPRE_BOX_REDUCTION
@@ -34,10 +36,10 @@
 
 typedef struct hypre_Boxloop_struct
 {
-   HYPRE_Int lsize0,lsize1,lsize2;
-   HYPRE_Int strides0,strides1,strides2;
-   HYPRE_Int bstart0,bstart1,bstart2;
-   HYPRE_Int bsize0,bsize1,bsize2;
+   HYPRE_Int lsize0, lsize1, lsize2;
+   HYPRE_Int strides0, strides1, strides2;
+   HYPRE_Int bstart0, bstart1, bstart2;
+   HYPRE_Int bsize0, bsize1, bsize2;
 } hypre_Boxloop;
 
 #define zypre_newBoxLoop0Begin(ndim, loop_size)                               \
@@ -280,3 +282,6 @@ typedef struct hypre_Boxloop_struct
         hypre_BoxLoop2End(i1, i2)
 
 #endif
+
+#endif /* #ifndef HYPRE_BOXLOOP_HOST_HEADER */
+

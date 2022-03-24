@@ -173,7 +173,7 @@ hypre_AuxParCSRMatrixSetRownnz( hypre_AuxParCSRMatrix *matrix )
    /* Count number of nonzero rows */
    local_num_rownnz = 0;
 #ifdef HYPRE_USING_OPENMP
-#pragma omp parallel for private(i) reduction(+:local_num_rownnz) HYPRE_SMP_SCHEDULE
+   #pragma omp parallel for private(i) reduction(+:local_num_rownnz) HYPRE_SMP_SCHEDULE
 #endif
    for (i = 0; i < local_num_rows; i++)
    {
@@ -264,20 +264,26 @@ hypre_AuxParCSRMatrixInitialize_v2( hypre_AuxParCSRMatrix *matrix,
       return 0;
    }
 
+   /* WM: Q - added the macro guards here (since IJ assembly not yet ported to sycl)... is this OK/correct? */
+#if defined(HYPRE_USING_CUDA) || defined(HYPRE_USING_HIP)
    if (memory_location != HYPRE_MEMORY_HOST)
    {
       /* GPU assembly */
       hypre_AuxParCSRMatrixNeedAux(matrix) = 1;
    }
    else
+#endif
    {
       /* CPU assembly */
       /* allocate stash for setting or adding off processor values */
       if (max_off_proc_elmts > 0)
       {
-         hypre_AuxParCSRMatrixOffProcI(matrix)    = hypre_CTAlloc(HYPRE_BigInt, 2*max_off_proc_elmts, HYPRE_MEMORY_HOST);
-         hypre_AuxParCSRMatrixOffProcJ(matrix)    = hypre_CTAlloc(HYPRE_BigInt,   max_off_proc_elmts, HYPRE_MEMORY_HOST);
-         hypre_AuxParCSRMatrixOffProcData(matrix) = hypre_CTAlloc(HYPRE_Complex,  max_off_proc_elmts, HYPRE_MEMORY_HOST);
+         hypre_AuxParCSRMatrixOffProcI(matrix)    = hypre_CTAlloc(HYPRE_BigInt, 2 * max_off_proc_elmts,
+                                                                  HYPRE_MEMORY_HOST);
+         hypre_AuxParCSRMatrixOffProcJ(matrix)    = hypre_CTAlloc(HYPRE_BigInt,   max_off_proc_elmts,
+                                                                  HYPRE_MEMORY_HOST);
+         hypre_AuxParCSRMatrixOffProcData(matrix) = hypre_CTAlloc(HYPRE_Complex,  max_off_proc_elmts,
+                                                                  HYPRE_MEMORY_HOST);
       }
 
       if (hypre_AuxParCSRMatrixNeedAux(matrix))
@@ -323,7 +329,8 @@ hypre_AuxParCSRMatrixInitialize_v2( hypre_AuxParCSRMatrix *matrix,
 
          if (!hypre_AuxParCSRMatrixRowLength(matrix))
          {
-            hypre_AuxParCSRMatrixRowLength(matrix) = hypre_CTAlloc(HYPRE_Int, local_num_rows, HYPRE_MEMORY_HOST);
+            hypre_AuxParCSRMatrixRowLength(matrix) = hypre_CTAlloc(HYPRE_Int, local_num_rows,
+                                                                   HYPRE_MEMORY_HOST);
          }
 
          if (row_space)

@@ -44,11 +44,11 @@ struct RAP_functor : public thrust::unary_function<HYPRE_Int, T>
 
       if (option == 1)
       {
-         return col_map[x-num_col];
+         return col_map[x - num_col];
       }
       else
       {
-         return col_map[x-num_col] + num_col;
+         return col_map[x - num_col] + num_col;
       }
    }
 };
@@ -112,7 +112,8 @@ hypre_ParCSRMatMatDevice( hypre_ParCSRMatrix  *A,
                                                 pred );
       HYPRE_Int nnz_C_offd = hypre_CSRMatrixNumNonzeros(Cbar) - nnz_C_diag;
 
-      C_diag = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumRows(A), hypre_ParCSRMatrixNumCols(B), nnz_C_diag);
+      C_diag = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumRows(A), hypre_ParCSRMatrixNumCols(B),
+                                     nnz_C_diag);
       hypre_CSRMatrixInitialize_v2(C_diag, 0, HYPRE_MEMORY_DEVICE);
       HYPRE_Int     *C_diag_ii = hypre_TAlloc(HYPRE_Int, nnz_C_diag, HYPRE_MEMORY_DEVICE);
       HYPRE_Int     *C_diag_j = hypre_CSRMatrixJ(C_diag);
@@ -123,14 +124,17 @@ hypre_ParCSRMatMatDevice( hypre_ParCSRMatrix  *A,
                                                            hypre_CSRMatrixI(Cbar));
 
       auto new_end = HYPRE_THRUST_CALL(
-         copy_if,
-         thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar), hypre_CSRMatrixData(Cbar))),
-         thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar), hypre_CSRMatrixData(Cbar))) + hypre_CSRMatrixNumNonzeros(Cbar),
-         hypre_CSRMatrixJ(Cbar),
-         thrust::make_zip_iterator(thrust::make_tuple(C_diag_ii, C_diag_j, C_diag_a)),
-         pred );
+                        copy_if,
+                        thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar),
+                                                                     hypre_CSRMatrixData(Cbar))),
+                        thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar),
+                                                                     hypre_CSRMatrixData(Cbar))) + hypre_CSRMatrixNumNonzeros(Cbar),
+                        hypre_CSRMatrixJ(Cbar),
+                        thrust::make_zip_iterator(thrust::make_tuple(C_diag_ii, C_diag_j, C_diag_a)),
+                        pred );
       hypre_assert( thrust::get<0>(new_end.get_iterator_tuple()) == C_diag_ii + nnz_C_diag );
-      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_diag), nnz_C_diag, C_diag_ii, hypre_CSRMatrixI(C_diag));
+      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_diag), nnz_C_diag, C_diag_ii,
+                                         hypre_CSRMatrixI(C_diag));
       hypre_TFree(C_diag_ii, HYPRE_MEMORY_DEVICE);
 
       C_offd = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumRows(A), num_cols_offd_C, nnz_C_offd);
@@ -139,14 +143,17 @@ hypre_ParCSRMatMatDevice( hypre_ParCSRMatrix  *A,
       HYPRE_Int     *C_offd_j = hypre_CSRMatrixJ(C_offd);
       HYPRE_Complex *C_offd_a = hypre_CSRMatrixData(C_offd);
       new_end = HYPRE_THRUST_CALL(
-         copy_if,
-         thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar), hypre_CSRMatrixData(Cbar))),
-         thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar), hypre_CSRMatrixData(Cbar))) + hypre_CSRMatrixNumNonzeros(Cbar),
-         hypre_CSRMatrixJ(Cbar),
-         thrust::make_zip_iterator(thrust::make_tuple(C_offd_ii, C_offd_j, C_offd_a)),
-         thrust::not1(pred) );
+                   copy_if,
+                   thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar),
+                                                                hypre_CSRMatrixData(Cbar))),
+                   thrust::make_zip_iterator(thrust::make_tuple(Cbar_ii, hypre_CSRMatrixJ(Cbar),
+                                                                hypre_CSRMatrixData(Cbar))) + hypre_CSRMatrixNumNonzeros(Cbar),
+                   hypre_CSRMatrixJ(Cbar),
+                   thrust::make_zip_iterator(thrust::make_tuple(C_offd_ii, C_offd_j, C_offd_a)),
+                   thrust::not1(pred) );
       hypre_assert( thrust::get<0>(new_end.get_iterator_tuple()) == C_offd_ii + nnz_C_offd );
-      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_offd), nnz_C_offd, C_offd_ii, hypre_CSRMatrixI(C_offd));
+      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_offd), nnz_C_offd, C_offd_ii,
+                                         hypre_CSRMatrixI(C_offd));
       hypre_TFree(C_offd_ii, HYPRE_MEMORY_DEVICE);
 
       HYPRE_THRUST_CALL( transform,
@@ -174,10 +181,6 @@ hypre_ParCSRMatMatDevice( hypre_ParCSRMatrix  *A,
                                 num_cols_offd_C,
                                 hypre_CSRMatrixNumNonzeros(C_diag),
                                 hypre_CSRMatrixNumNonzeros(C_offd));
-
-   /* Note that C does not own the partitionings */
-   hypre_ParCSRMatrixSetRowStartsOwner(C, 0);
-   hypre_ParCSRMatrixSetColStartsOwner(C, 0);
 
    hypre_CSRMatrixDestroy(hypre_ParCSRMatrixDiag(C));
    hypre_ParCSRMatrixDiag(C) = C_diag;
@@ -220,7 +223,7 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
    if (hypre_ParCSRMatrixGlobalNumRows(A) != hypre_ParCSRMatrixGlobalNumRows(B) ||
        hypre_ParCSRMatrixNumRows(A)       != hypre_ParCSRMatrixNumRows(B))
    {
-      hypre_error_w_msg(HYPRE_ERROR_GENERIC," Error! Incompatible matrix dimensions!\n");
+      hypre_error_w_msg(HYPRE_ERROR_GENERIC, " Error! Incompatible matrix dimensions!\n");
       return NULL;
    }
 
@@ -253,8 +256,10 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
       hypre_CSRMatrixDestroy(AbarT);
       hypre_CSRMatrixDestroy(Bbar);
 
-      hypre_assert(hypre_CSRMatrixNumRows(Cbar) == hypre_ParCSRMatrixNumCols(A) + hypre_CSRMatrixNumCols(A_offd));
-      hypre_assert(hypre_CSRMatrixNumCols(Cbar) == hypre_ParCSRMatrixNumCols(B) + hypre_CSRMatrixNumCols(B_offd));
+      hypre_assert(hypre_CSRMatrixNumRows(Cbar) == hypre_ParCSRMatrixNumCols(A) + hypre_CSRMatrixNumCols(
+                      A_offd));
+      hypre_assert(hypre_CSRMatrixNumCols(Cbar) == hypre_ParCSRMatrixNumCols(B) + hypre_CSRMatrixNumCols(
+                      B_offd));
 
       hypre_TMemcpy(&local_nnz_Cbar, hypre_CSRMatrixI(Cbar) + hypre_ParCSRMatrixNumCols(A), HYPRE_Int, 1,
                     HYPRE_MEMORY_HOST, HYPRE_MEMORY_DEVICE);
@@ -273,7 +278,8 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
                          hypre_CSRMatrixI(Cint),
                          thrust::minus<HYPRE_Int>() );
 
-      hypre_CSRMatrixBigJ(Cint) = hypre_TAlloc(HYPRE_BigInt, hypre_CSRMatrixNumNonzeros(Cint), HYPRE_MEMORY_DEVICE);
+      hypre_CSRMatrixBigJ(Cint) = hypre_TAlloc(HYPRE_BigInt, hypre_CSRMatrixNumNonzeros(Cint),
+                                               HYPRE_MEMORY_DEVICE);
 
       RAP_functor<1, HYPRE_BigInt> func1( hypre_ParCSRMatrixNumCols(B),
                                           hypre_ParCSRMatrixFirstColDiag(B),
@@ -286,7 +292,7 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
 
       hypre_CSRMatrixData(Cint) = hypre_CSRMatrixData(Cbar) + local_nnz_Cbar;
 
-      hypre_ExchangeExternalRowsDeviceInit(Cint, hypre_ParCSRMatrixCommPkg(A), &request);
+      hypre_ExchangeExternalRowsDeviceInit(Cint, hypre_ParCSRMatrixCommPkg(A), 1, &request);
       Cext = hypre_ExchangeExternalRowsDeviceWait(request);
 
       hypre_TFree(hypre_CSRMatrixBigJ(Cint), HYPRE_MEMORY_DEVICE);
@@ -316,7 +322,8 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
                                       &Cext_offd_nnz,
                                       NULL, NULL, NULL, NULL);
 
-      HYPRE_Int *Cext_ii = hypreDevice_CsrRowPtrsToIndices(hypre_CSRMatrixNumRows(Cext), hypre_CSRMatrixNumNonzeros(Cext),
+      HYPRE_Int *Cext_ii = hypreDevice_CsrRowPtrsToIndices(hypre_CSRMatrixNumRows(Cext),
+                                                           hypre_CSRMatrixNumNonzeros(Cext),
                                                            hypre_CSRMatrixI(Cext));
 
       hypre_CSRMatrixSplitDevice_core(1,
@@ -362,8 +369,10 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
                          tmp_j + local_nnz_Cbar + Cext_diag_nnz,
                          thrust::plus<HYPRE_Int>() );
 
-      hypreDevice_CsrRowPtrsToIndices_v2(hypre_ParCSRMatrixNumCols(A), local_nnz_Cbar, hypre_CSRMatrixI(Cbar), tmp_i);
-      hypre_TMemcpy(tmp_a, hypre_CSRMatrixData(Cbar), HYPRE_Complex, local_nnz_Cbar, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_DEVICE);
+      hypreDevice_CsrRowPtrsToIndices_v2(hypre_ParCSRMatrixNumCols(A), local_nnz_Cbar,
+                                         hypre_CSRMatrixI(Cbar), tmp_i);
+      hypre_TMemcpy(tmp_a, hypre_CSRMatrixData(Cbar), HYPRE_Complex, local_nnz_Cbar, HYPRE_MEMORY_DEVICE,
+                    HYPRE_MEMORY_DEVICE);
       RAP_functor<2, HYPRE_Int> func2(hypre_ParCSRMatrixNumCols(B), 0, offd_map_to_C);
       HYPRE_THRUST_CALL( transform,
                          hypre_CSRMatrixJ(Cbar),
@@ -381,7 +390,8 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
       HYPRE_Int     *zmp_j = hypre_TAlloc(HYPRE_Int,     tmp_s, HYPRE_MEMORY_DEVICE);
       HYPRE_Complex *zmp_a = hypre_TAlloc(HYPRE_Complex, tmp_s, HYPRE_MEMORY_DEVICE);
 
-      HYPRE_Int local_nnz_C = hypreDevice_ReduceByTupleKey(tmp_s, tmp_i, tmp_j, tmp_a, zmp_i, zmp_j, zmp_a);
+      HYPRE_Int local_nnz_C = hypreDevice_ReduceByTupleKey(tmp_s, tmp_i, tmp_j, tmp_a, zmp_i, zmp_j,
+                                                           zmp_a);
 
       hypre_TFree(tmp_i, HYPRE_MEMORY_DEVICE);
       hypre_TFree(tmp_j, HYPRE_MEMORY_DEVICE);
@@ -396,7 +406,8 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
                                                 pred );
       HYPRE_Int nnz_C_offd = local_nnz_C - nnz_C_diag;
 
-      C_diag = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumCols(A), hypre_ParCSRMatrixNumCols(B), nnz_C_diag);
+      C_diag = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumCols(A), hypre_ParCSRMatrixNumCols(B),
+                                     nnz_C_diag);
       hypre_CSRMatrixInitialize_v2(C_diag, 0, HYPRE_MEMORY_DEVICE);
       HYPRE_Int     *C_diag_ii = hypre_TAlloc(HYPRE_Int, nnz_C_diag, HYPRE_MEMORY_DEVICE);
       HYPRE_Int     *C_diag_j = hypre_CSRMatrixJ(C_diag);
@@ -409,7 +420,8 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
                                         thrust::make_zip_iterator(thrust::make_tuple(C_diag_ii, C_diag_j, C_diag_a)),
                                         pred );
       hypre_assert( thrust::get<0>(new_end.get_iterator_tuple()) == C_diag_ii + nnz_C_diag );
-      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_diag), nnz_C_diag, C_diag_ii, hypre_CSRMatrixI(C_diag));
+      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_diag), nnz_C_diag, C_diag_ii,
+                                         hypre_CSRMatrixI(C_diag));
       hypre_TFree(C_diag_ii, HYPRE_MEMORY_DEVICE);
 
       C_offd = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumCols(A), num_cols_offd_C, nnz_C_offd);
@@ -424,7 +436,8 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
                                    thrust::make_zip_iterator(thrust::make_tuple(C_offd_ii, C_offd_j, C_offd_a)),
                                    thrust::not1(pred) );
       hypre_assert( thrust::get<0>(new_end.get_iterator_tuple()) == C_offd_ii + nnz_C_offd );
-      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_offd), nnz_C_offd, C_offd_ii, hypre_CSRMatrixI(C_offd));
+      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_offd), nnz_C_offd, C_offd_ii,
+                                         hypre_CSRMatrixI(C_offd));
       hypre_TFree(C_offd_ii, HYPRE_MEMORY_DEVICE);
 
       HYPRE_THRUST_CALL( transform,
@@ -467,10 +480,6 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
                                 hypre_CSRMatrixNumNonzeros(C_diag),
                                 hypre_CSRMatrixNumNonzeros(C_offd));
 
-   /* Note that C does not own the partitionings */
-   hypre_ParCSRMatrixSetRowStartsOwner(C, 0);
-   hypre_ParCSRMatrixSetColStartsOwner(C, 0);
-
    hypre_CSRMatrixDestroy(hypre_ParCSRMatrixDiag(C));
    hypre_ParCSRMatrixDiag(C) = C_diag;
 
@@ -488,7 +497,7 @@ hypre_ParCSRTMatMatKTDevice( hypre_ParCSRMatrix  *A,
 
    hypre_assert(!hypre_CSRMatrixCheckDiagFirstDevice(hypre_ParCSRMatrixDiag(C)));
 
-   hypre_SyncCudaComputeStream(hypre_handle());
+   hypre_SyncComputeStream(hypre_handle());
 
    return C;
 }
@@ -567,7 +576,8 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
       hypre_CSRMatrixDestroy(Abar);
       hypre_CSRMatrixDestroy(Pbar);
 
-      hypre_assert(hypre_CSRMatrixNumRows(Cbar) == hypre_ParCSRMatrixNumCols(R) + hypre_CSRMatrixNumCols(R_offd));
+      hypre_assert(hypre_CSRMatrixNumRows(Cbar) == hypre_ParCSRMatrixNumCols(R) + hypre_CSRMatrixNumCols(
+                      R_offd));
       hypre_assert(hypre_CSRMatrixNumCols(Cbar) == hypre_ParCSRMatrixNumCols(P) + num_cols_offd);
 
       hypre_TMemcpy(&local_nnz_Cbar, hypre_CSRMatrixI(Cbar) + hypre_ParCSRMatrixNumCols(R), HYPRE_Int, 1,
@@ -587,9 +597,11 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
                          hypre_CSRMatrixI(Cint),
                          thrust::minus<HYPRE_Int>() );
 
-      hypre_CSRMatrixBigJ(Cint) = hypre_TAlloc(HYPRE_BigInt, hypre_CSRMatrixNumNonzeros(Cint), HYPRE_MEMORY_DEVICE);
+      hypre_CSRMatrixBigJ(Cint) = hypre_TAlloc(HYPRE_BigInt, hypre_CSRMatrixNumNonzeros(Cint),
+                                               HYPRE_MEMORY_DEVICE);
 
-      RAP_functor<1, HYPRE_BigInt> func1(hypre_ParCSRMatrixNumCols(P), hypre_ParCSRMatrixFirstColDiag(P), col_map_offd);
+      RAP_functor<1, HYPRE_BigInt> func1(hypre_ParCSRMatrixNumCols(P), hypre_ParCSRMatrixFirstColDiag(P),
+                                         col_map_offd);
       HYPRE_THRUST_CALL( transform,
                          hypre_CSRMatrixJ(Cbar) + local_nnz_Cbar,
                          hypre_CSRMatrixJ(Cbar) + hypre_CSRMatrixNumNonzeros(Cbar),
@@ -598,7 +610,7 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
 
       hypre_CSRMatrixData(Cint) = hypre_CSRMatrixData(Cbar) + local_nnz_Cbar;
 
-      hypre_ExchangeExternalRowsDeviceInit(Cint, hypre_ParCSRMatrixCommPkg(R), &request);
+      hypre_ExchangeExternalRowsDeviceInit(Cint, hypre_ParCSRMatrixCommPkg(R), 1, &request);
       Cext = hypre_ExchangeExternalRowsDeviceWait(request);
 
       hypre_TFree(hypre_CSRMatrixBigJ(Cint), HYPRE_MEMORY_DEVICE);
@@ -628,7 +640,8 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
                                       &Cext_offd_nnz,
                                       NULL, NULL, NULL, NULL);
 
-      HYPRE_Int *Cext_ii = hypreDevice_CsrRowPtrsToIndices(hypre_CSRMatrixNumRows(Cext), hypre_CSRMatrixNumNonzeros(Cext),
+      HYPRE_Int *Cext_ii = hypreDevice_CsrRowPtrsToIndices(hypre_CSRMatrixNumRows(Cext),
+                                                           hypre_CSRMatrixNumNonzeros(Cext),
                                                            hypre_CSRMatrixI(Cext));
 
       hypre_CSRMatrixSplitDevice_core(1,
@@ -675,8 +688,10 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
                          tmp_j + local_nnz_Cbar + Cext_diag_nnz,
                          thrust::plus<HYPRE_Int>() );
 
-      hypreDevice_CsrRowPtrsToIndices_v2(hypre_ParCSRMatrixNumCols(R), local_nnz_Cbar, hypre_CSRMatrixI(Cbar), tmp_i);
-      hypre_TMemcpy(tmp_a, hypre_CSRMatrixData(Cbar), HYPRE_Complex, local_nnz_Cbar, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_DEVICE);
+      hypreDevice_CsrRowPtrsToIndices_v2(hypre_ParCSRMatrixNumCols(R), local_nnz_Cbar,
+                                         hypre_CSRMatrixI(Cbar), tmp_i);
+      hypre_TMemcpy(tmp_a, hypre_CSRMatrixData(Cbar), HYPRE_Complex, local_nnz_Cbar, HYPRE_MEMORY_DEVICE,
+                    HYPRE_MEMORY_DEVICE);
       RAP_functor<2, HYPRE_Int> func2(hypre_ParCSRMatrixNumCols(P), 0, offd_map_to_C);
       HYPRE_THRUST_CALL( transform,
                          hypre_CSRMatrixJ(Cbar),
@@ -694,7 +709,8 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
       HYPRE_Int     *zmp_j = hypre_TAlloc(HYPRE_Int,     tmp_s, HYPRE_MEMORY_DEVICE);
       HYPRE_Complex *zmp_a = hypre_TAlloc(HYPRE_Complex, tmp_s, HYPRE_MEMORY_DEVICE);
 
-      HYPRE_Int local_nnz_C = hypreDevice_ReduceByTupleKey(tmp_s, tmp_i, tmp_j, tmp_a, zmp_i, zmp_j, zmp_a);
+      HYPRE_Int local_nnz_C = hypreDevice_ReduceByTupleKey(tmp_s, tmp_i, tmp_j, tmp_a, zmp_i, zmp_j,
+                                                           zmp_a);
 
       hypre_TFree(tmp_i, HYPRE_MEMORY_DEVICE);
       hypre_TFree(tmp_j, HYPRE_MEMORY_DEVICE);
@@ -709,7 +725,8 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
                                                 pred );
       HYPRE_Int nnz_C_offd = local_nnz_C - nnz_C_diag;
 
-      C_diag = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumCols(R), hypre_ParCSRMatrixNumCols(P), nnz_C_diag);
+      C_diag = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumCols(R), hypre_ParCSRMatrixNumCols(P),
+                                     nnz_C_diag);
       hypre_CSRMatrixInitialize_v2(C_diag, 0, HYPRE_MEMORY_DEVICE);
       HYPRE_Int     *C_diag_ii = hypre_TAlloc(HYPRE_Int, nnz_C_diag, HYPRE_MEMORY_DEVICE);
       HYPRE_Int     *C_diag_j = hypre_CSRMatrixJ(C_diag);
@@ -722,7 +739,8 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
                                         thrust::make_zip_iterator(thrust::make_tuple(C_diag_ii, C_diag_j, C_diag_a)),
                                         pred );
       hypre_assert( thrust::get<0>(new_end.get_iterator_tuple()) == C_diag_ii + nnz_C_diag );
-      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_diag), nnz_C_diag, C_diag_ii, hypre_CSRMatrixI(C_diag));
+      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_diag), nnz_C_diag, C_diag_ii,
+                                         hypre_CSRMatrixI(C_diag));
       hypre_TFree(C_diag_ii, HYPRE_MEMORY_DEVICE);
 
       C_offd = hypre_CSRMatrixCreate(hypre_ParCSRMatrixNumCols(R), num_cols_offd_C, nnz_C_offd);
@@ -737,7 +755,8 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
                                    thrust::make_zip_iterator(thrust::make_tuple(C_offd_ii, C_offd_j, C_offd_a)),
                                    thrust::not1(pred) );
       hypre_assert( thrust::get<0>(new_end.get_iterator_tuple()) == C_offd_ii + nnz_C_offd );
-      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_offd), nnz_C_offd, C_offd_ii, hypre_CSRMatrixI(C_offd));
+      hypreDevice_CsrRowIndicesToPtrs_v2(hypre_CSRMatrixNumRows(C_offd), nnz_C_offd, C_offd_ii,
+                                         hypre_CSRMatrixI(C_offd));
       hypre_TFree(C_offd_ii, HYPRE_MEMORY_DEVICE);
 
       HYPRE_THRUST_CALL( transform,
@@ -781,10 +800,6 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
                                 hypre_CSRMatrixNumNonzeros(C_diag),
                                 hypre_CSRMatrixNumNonzeros(C_offd));
 
-   /* Note that C does not own the partitionings */
-   hypre_ParCSRMatrixSetRowStartsOwner(C, 0);
-   hypre_ParCSRMatrixSetColStartsOwner(C, 0);
-
    hypre_CSRMatrixDestroy(hypre_ParCSRMatrixDiag(C));
    hypre_ParCSRMatrixDiag(C) = C_diag;
 
@@ -802,7 +817,7 @@ hypre_ParCSRMatrixRAPKTDevice( hypre_ParCSRMatrix *R,
 
    hypre_assert(!hypre_CSRMatrixCheckDiagFirstDevice(hypre_ParCSRMatrixDiag(C)));
 
-   hypre_SyncCudaComputeStream(hypre_handle());
+   hypre_SyncComputeStream(hypre_handle());
 
    return C;
 }

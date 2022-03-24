@@ -71,7 +71,11 @@ if [ -n "$spackdir" ]; then
 fi
 for tname in $tests
 do
-   make $mopt $tname
+   if [ "$tname" = "gpu" ]; then
+      make -j "use_cuda=1" $mopt $tname
+   else
+      make $mopt $tname
+   fi
 done
 
 # Run the examples regression test
