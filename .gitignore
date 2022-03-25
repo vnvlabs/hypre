@@ -7,6 +7,8 @@
 *.err
 *.out
 *.perf
+*.idea
+*.vscode
 config.log
 config.status
 Makefile.config
