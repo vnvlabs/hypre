@@ -36,18 +36,9 @@ if (HYPRE_COMPLEX)
   )
 endif()
 
-
-if (HYPRE_USING_VNV) 
-  list(APPEND EXAMPLE_SRCS exvnv.c)
-endif()  
-
 add_hypre_executables(EXAMPLE_SRCS)
 
 if (HYPRE_USING_VNV) 
-	link_vnv_file(exvnv HYPRE_EX1 c) 
-	configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
-               ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)
-
-
+    configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)
 endif()  
 

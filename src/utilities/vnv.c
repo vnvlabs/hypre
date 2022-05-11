@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include "VnV.h"
 
-INJECTION_EXECUTABLE(VnVHypre) 
+INJECTION_LIBRARY(VnVHypre) 
 
 static const char* hypre_vnv_schema = "{\"type\": \"object\", \"required\":[]}";
 

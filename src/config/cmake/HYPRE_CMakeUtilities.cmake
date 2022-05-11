@@ -16,6 +16,7 @@ endfunction()
 # A function to add each executable in the list to the build with the
 # correct flags, includes, and linkage.
 function(add_hypre_executables EXE_SRCS)
+  
   # Add one executable per cpp file
   foreach(SRC_FILE IN LISTS ${EXE_SRCS})
     get_filename_component(SRC_FILENAME ${SRC_FILE} NAME)
@@ -45,5 +46,13 @@ function(add_hypre_executables EXE_SRCS)
 
     # Append the additional libraries and options
     target_link_libraries(${EXE_NAME} PRIVATE "${HYPRE_LIBS}")
+
+    # If using vnv then link it. 
+    if (HYPRE_USING_VNV)
+	    target_compile_definitions(${EXE_NAME} PUBLIC HYPRE_VNVEXE=HYPRE_${EXE_NAME})
+        link_vnv_file(${EXE_NAME} HYPRE_${EXE_NAME} c) 
+    endif()	    
+
+
   endforeach(SRC_FILE)
 endfunction()

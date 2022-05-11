@@ -34,11 +34,96 @@
 #include "HYPRE_struct_ls.h"
 #include "ex.h"
 
-#ifdef HYPRE_EXVIS
-#include "vis.c"
+#ifdef HYPRE_VNVEXE
+
+#include "VnV.h"
+
+
+/**
+ * @title Hypre Example 1: The Struct Interface
+ * @shorttitle Example 1
+ *
+ * @configuration 
+ * {
+ *   
+ * }
+ * @endconfiguration  
+ *
+ * This is a two processor example.  Each processor owns one
+ * box in the grid.  For reference, the two grid boxes are those
+ * in the example diagram in the struct interface chapter
+ * of the User's Manual. Note that in this example code, we have
+ * used the two boxes shown in the diagram as belonging
+ * to processor 0 (and given one box to each processor). The
+ * solver is PCG with no preconditioner.
+ *
+
+ *    
+ */ 
+INJECTION_EXECUTABLE(HYPRE_VNVEXE)
+
+
+/**
+ * This comment gets parsed, but does not get used for anything 
+ * yet. It could eventually be used to describe how the application
+ * links with the subpackage I guess. 
+ *
+ * .. comment:: 
+ *    
+ *    This command tells the VnV Preprocessor that this executable 
+ *    makes calls to a VnV package called VnVHypre. At runtime, VnV
+ *    will call the registration function for this library and also
+ *    for any subpacakges. Note, if you list a subpackage here, but 
+ *    do not link a library that has that package, you will get an 
+ *    error saying something along the lines of "undefined symbol 
+ *    vnv_registration_<packagename>".   
+ **/
+ INJECTION_SUBPACKAGE(HYPRE_VNVEXE, VnVHypre)
+
+	
+/**
+ * @title Hypre Example 1
+ * @shorttitle Hypre Example 1
+ *
+ * This is a two processor example.  Each processor owns one
+ * box in the grid.  For reference, the two grid boxes are those
+ * in the example diagram in the struct interface chapter
+ * of the User's Manual. Note that in this example code, we have
+ * used the two boxes shown in the diagram as belonging
+ * to processor 0 (and given one box to each processor). The
+ * solver is PCG with no preconditioner.
+ * 
+ * .. comment::
+ *
+ *    This comment shows up under the "packages" tab in the final 
+ *    report. You can use this comment to print out any information
+ *    you think is pertinent to the final report. For example, you
+ *    could print out license information, version information, etc.
+ *    C++ users have access to an engine* object that they can use to 
+ *    write out variables to be used in this comment just like in the 
+ *    vnv tests. 
+ *
+ */ 
+ INJECTION_OPTIONS(HYPRE_VNVEXE,"{ \"type\" : \"object\" }"){
+  
+        // The options function gets passed a json-like object that 
+	// is pre-validated against the schema passed above. In this 
+	// case the schema is just a generic object, so all config is 
+	// accepted. Hypre is compiled in C, so in this case the object is a "cjson"
+	// object called json. The cjson api is described here (TODO -- document CJson.h)
+	// TODO -Option to force C API in cases where we compile with C++ compiler. 
+
+ 	//This one just dumps to screen as a demo.	 
+
+	// You can return a pointer to any object you like here. VnV
+	// will store it in static space. You can fetch it at any time
+	// using the INJECTION_GET_OPTIONS_OBJECT(HYPRE_VNVEXE) command.
+	
+	return NULL;
+}
+
+
 #endif
-
-
 
 
 int main (int argc, char *argv[])
@@ -59,8 +144,6 @@ int main (int argc, char *argv[])
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
-
-
    if (num_procs != 2)
    {
       if (myid == 0) { printf("Must run with 2 processors!\n"); }
@@ -75,6 +158,7 @@ int main (int argc, char *argv[])
    /* Print GPU info */
    /* HYPRE_PrintDeviceInfo(); */
 
+   int vnv_index = -1;
    /* Parse command line */
    {
       int arg_index = 0;
@@ -92,7 +176,12 @@ int main (int argc, char *argv[])
             print_usage = 1;
             break;
          }
-         else
+	 else if (strcmp(argv[arg_index], "-vnv") == 0 )
+	 {
+	    vnv_index = ++arg_index;
+	    ++arg_index;
+	 }
+	 else
          {
             arg_index++;
          }
@@ -112,6 +201,10 @@ int main (int argc, char *argv[])
          MPI_Finalize();
          return (0);
       }
+   }
+
+   if (vnv_index > -1 ) {
+	INJECTION_INITIALIZE(HYPRE_VNVEXE, &argc, &argv, argv[vnv_index]);   
    }
 
    /* 1. Set up a grid. Each processor describes the piece
@@ -387,6 +480,10 @@ int main (int argc, char *argv[])
    HYPRE_StructVectorDestroy(x);
    HYPRE_StructPCGDestroy(solver);
 
+   //FINALIZE VNV
+   if (vnv_index > -1 ) {
+	INJECTION_FINALIZE(HYPRE_VNVEXE);
+   }
 
    /* Finalize Hypre */
    HYPRE_Finalize();
