@@ -25,4 +25,5 @@ RUN cd ${SOURCE_DIR}/hypre/src \
 ENV HYPRE_DIR=${SOFTWARE_DIR}/hypre
 
 ENV VNV_CONFIG=${VNV_CONFIG}:${SOURCE_DIR}/hypre/src/build/vnv.__registration__
+ENV VNV_CONFIG=${VNV_CONFIG}:${SOURCE_DIR}/hypre/docker/config/vnv.__registration__
 

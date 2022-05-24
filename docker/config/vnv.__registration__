@@ -1,0 +1,13 @@
+{
+    "logo" : {
+        "small" : "hypre/static/logo.png",
+        "large" : "hypre/static/logo.png"
+    },
+    "copyright" : {
+        "message" : "RNET Technolgies Inc.",
+        "link" : "https://rnet-tech.com"
+    },
+    "blueprints" : {
+        "hypre" : "./hypre"
+    }
+}
