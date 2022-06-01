@@ -18,21 +18,3 @@ INJECTION_OPTIONS(VnVHypre, hypre_vnv_schema) {
 
 }
 
-
-/** For testing purposes only -- if you are seeing this, i forgot to remove it
- *
- */
-
-int vnv_test_function(int x) {
-   
-
-  INJECTION_LOOP_BEGIN("VnVHypre", VWORLD, "SanityCheck", x);
-  
-  for (int i = 0; i < 10; i++) {
-    x += i;
-    INJECTION_LOOP_ITER("VnVHypre","SanityCheck", "inner");
-  }
-
-  INJECTION_LOOP_END("VnVHypre","SanityCheck");
-  return x;
-}
