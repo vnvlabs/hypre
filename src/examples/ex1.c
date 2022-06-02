@@ -41,7 +41,7 @@
 
 /**
  * @title Hypre Example 1: The Struct Interface
- * @shorttitle Example 1
+ * @shortTitle Example 1
  *
  * @configuration 
  * {
