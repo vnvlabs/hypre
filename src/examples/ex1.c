@@ -104,7 +104,7 @@ INJECTION_EXECUTABLE(HYPRE_VNVEXE)
  *    vnv tests. 
  *
  */ 
- INJECTION_OPTIONS(HYPRE_VNVEXE,"{ \"type\" : \"object\" }"){
+ INJECTION_OPTIONS(HYPRE_VNVEXE,"{ \"type\" : \"object\" }", void){
   
         // The options function gets passed a json-like object that 
 	// is pre-validated against the schema passed above. In this 

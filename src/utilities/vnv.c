@@ -14,7 +14,7 @@ static const char* hypre_vnv_schema = "{\"type\": \"object\", \"required\":[]}";
  *
  * TODO: Add options to the schema and parse them in this function.
  */ 
-INJECTION_OPTIONS(VnVHypre, hypre_vnv_schema) {
+INJECTION_OPTIONS(VnVHypre, hypre_vnv_schema, void) {
 
 }
 
