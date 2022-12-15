@@ -14,6 +14,8 @@
 #include "_hypre_parcsr_ls.h"
 #include "par_amg.h"
 
+#include "VnV.h"
+
 /*--------------------------------------------------------------------
  * hypre_BoomerAMGSolve
  *--------------------------------------------------------------------*/
@@ -27,6 +29,8 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
    MPI_Comm            comm = hypre_ParCSRMatrixComm(A);
 
    hypre_ParAMGData   *amg_data = (hypre_ParAMGData*) amg_vdata;
+
+   INJECTION_LOOP_BEGIN(VnVHypre, VWORLD, BoomerAMG, A,f,u);
 
    /* Data Structure variables */
 
@@ -245,6 +249,7 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
 
    while ( (relative_resid >= tol || cycle_count < min_iter) && cycle_count < max_iter )
    {
+      INJECTION_LOOP_ITER(VnVHypre, BoomerAMG, StartVCycle);
       hypre_ParAMGDataCycleOpCount(amg_data) = 0;
       /* Op count only needed for one cycle */
       if ( (additive      < 0 || additive      >= num_levels) &&
@@ -317,6 +322,8 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
          hypre_printf("    Cycle %2d   %e    %f     %e \n", cycle_count,
                       resid_nrm, conv_factor, relative_resid);
       }
+
+
    }
 
    if (cycle_count == max_iter && tol > 0.)
@@ -401,6 +408,9 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
 
       hypre_TFree(num_coeffs, HYPRE_MEMORY_HOST);
       hypre_TFree(num_variables, HYPRE_MEMORY_HOST);
+
+      INJECTION_LOOP_END(VnVHypre, BoomerAMG);
+
    }
    HYPRE_ANNOTATE_FUNC_END;
 
