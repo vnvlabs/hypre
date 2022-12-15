@@ -30,7 +30,7 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
 
    hypre_ParAMGData   *amg_data = (hypre_ParAMGData*) amg_vdata;
 
-   INJECTION_LOOP_BEGIN(VnVHypre, VWORLD, BoomerAMG, A,f,u);
+   INJECTION_LOOP_BEGIN(VnVHypre, VWORLD, BoomerAMG, VNV_NOCALLBACK, A,f,u);
 
    /* Data Structure variables */
 
@@ -249,7 +249,7 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
 
    while ( (relative_resid >= tol || cycle_count < min_iter) && cycle_count < max_iter )
    {
-      INJECTION_LOOP_ITER(VnVHypre, BoomerAMG, StartVCycle);
+      INJECTION_LOOP_ITER(VnVHypre, BoomerAMG, "StartVCycle",VNV_NOCALLBACK);
       hypre_ParAMGDataCycleOpCount(amg_data) = 0;
       /* Op count only needed for one cycle */
       if ( (additive      < 0 || additive      >= num_levels) &&
@@ -409,7 +409,7 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
       hypre_TFree(num_coeffs, HYPRE_MEMORY_HOST);
       hypre_TFree(num_variables, HYPRE_MEMORY_HOST);
 
-      INJECTION_LOOP_END(VnVHypre, BoomerAMG);
+      INJECTION_LOOP_END(VnVHypre, BoomerAMG,VNV_NOCALLBACK);
 
    }
    HYPRE_ANNOTATE_FUNC_END;
