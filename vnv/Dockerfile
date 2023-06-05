@@ -20,10 +20,12 @@ RUN cd ${SOURCE_DIR}/hypre/src \
              -DInjection_DIR=${VNV_DIR}/lib/cmake .. \
    && cmake .. \
    && make \
-   && make install 
+   && make install \
+   && cp -r ${SOURCE_DIR}/hypre/vnv/examples ${SOFTWARE_DIR}/hypre/examples  \
+   && cp -r ${SOURCE_DIR}/hypre/vnv/gui ${SOFTWARE_DIR}/hypre/gui \
+   && rm -r ${SOURCE_DIR}/hypre
 
 ENV HYPRE_DIR=${SOFTWARE_DIR}/hypre
-
-ENV VNV_CONFIG=${VNV_CONFIG}:${SOURCE_DIR}/hypre/src/build/vnv.__registration__
-ENV VNV_CONFIG=${VNV_CONFIG}:${SOURCE_DIR}/hypre/docker/config/vnv.__registration__
+ENV VNV_CONFIG=${VNV_CONFIG}:${SOFTWARE_DIR}/hypre/vnv.__registration__
+ENV VNV_CONFIG=${VNV_CONFIG}:${SOFTWARE_DIR}/hypre/gui/vnv.__registration__
 

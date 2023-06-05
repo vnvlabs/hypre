@@ -1,7 +1,7 @@
 {
     "logo" : {
-        "small" : "hypre/static/hypre-logo.png",
-        "large" : "hypre/static/hypre-wwords.png"
+        "small" : "static/hypre-logo.png",
+        "large" : "static/hypre-wwords.png"
     },
     "copyright" : {
         "message" : "RNET Technolgies Inc.",
