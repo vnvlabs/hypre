@@ -2,9 +2,6 @@
 ARG FROM_IMAGE=vnv_base
 FROM ${FROM_IMAGE}
 
-ARG COMMIT_HASH=unknown
-LABEL vnv.version.hypre=${COMMIT_HASH}
-
 #Install Hypre VnV
 COPY ./ ${SOURCE_DIR}/hypre 
 
@@ -26,6 +23,7 @@ RUN cd ${SOURCE_DIR}/hypre/src \
    && rm -r ${SOURCE_DIR}/hypre
 
 ENV HYPRE_DIR=${SOFTWARE_DIR}/hypre
-ENV VNV_CONFIG=${VNV_CONFIG}:${SOFTWARE_DIR}/hypre/vnv.__registration__
-ENV VNV_CONFIG=${VNV_CONFIG}:${SOFTWARE_DIR}/hypre/gui/vnv.__registration__
+
+
+RUN echo ${SOFTWARE_DIR}/hypre/gui/vnv.__registration__ >> ${HOME}/.vnv
 
