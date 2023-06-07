@@ -24,6 +24,6 @@ RUN cd ${SOURCE_DIR}/hypre/src \
 
 ENV HYPRE_DIR=${SOFTWARE_DIR}/hypre
 
-RUN python3 ${VNV_DIR}/scripts/register.py register ${SOFTWARE_DIR}/hypre/gui/vnv.__registration__ 
+ENV VNV_CONFIG=${VNV_CONFIG}:${SOFTWARE_DIR}/hypre/gui/vnv.__registration__ 
 
 

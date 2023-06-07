@@ -41,7 +41,7 @@
 #include "VnV.h"
 
 
-INJECTION_EXECUTABLE(HYPRE_EX1)
+INJECTION_EXECUTABLE(HYPRE_EX1,"{}")
 INJECTION_SUBPACKAGE(HYPRE_EX1, VnVHypre)
 
 int main (int argc, char *argv[])
