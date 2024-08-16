@@ -50,7 +50,7 @@ function(add_hypre_executables EXE_SRCS)
     # If using vnv then link it. 
     if (HYPRE_USING_VNV)
 	    target_compile_definitions(${EXE_NAME} PUBLIC HYPRE_VNVEXE=HYPRE_${EXE_NAME})
-        link_vnv_file(${EXE_NAME} HYPRE_${EXE_NAME} c) 
+        link_vnv_executable(${EXE_NAME} HYPRE_${EXE_NAME} c) 
     endif()	    
 
 

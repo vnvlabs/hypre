@@ -19,10 +19,8 @@ RUN cd ${SOURCE_DIR}/hypre/src \
    && make \
    && make install \
    && cp -r ${SOURCE_DIR}/hypre/vnv/examples ${SOFTWARE_DIR}/hypre/examples  \
-   && cp -r ${SOURCE_DIR}/hypre/vnv/gui ${SOFTWARE_DIR}/hypre/gui \
    && rm -r ${SOURCE_DIR}/hypre
 
 ENV HYPRE_DIR=${SOFTWARE_DIR}/hypre
 
-RUN ${VNV_REGISTER} gui hypre ${SOFTWARE_DIR}/hypre/gui/vnv.__registration__ 
 

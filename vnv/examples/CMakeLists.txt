@@ -11,5 +11,5 @@ find_package(HYPRE REQUIRED)
 find_package(Injection REQUIRED)
 add_executable(ex1 ex1.c)
 target_link_libraries(ex1 PUBLIC HYPRE::HYPRE)
-link_vnv_file(ex1 HYPRE_EX1 c)
+link_vnv_executable(ex1 HYPRE_EX1 c)
 

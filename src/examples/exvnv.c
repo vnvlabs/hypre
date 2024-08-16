@@ -63,7 +63,7 @@ int main (int argc, char *argv[])
    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
 
-   INJECTION_INITIALIZE(HYPRE_EX1, &argc, &argv, "vv-input.json");
+   INJECTION_INITIALIZE(HYPRE_EX1, &argc, &argv);
 
    if (num_procs != 2)
    {

@@ -187,7 +187,7 @@ int main (int argc, char *argv[])
    }
 
    if (vnv_index > -1 ) {
-	INJECTION_INITIALIZE(HYPRE_EX1, &argc, &argv, argv[vnv_index]);   
+	INJECTION_INITIALIZE(HYPRE_EX1, &argc, &argv);   
    }
 
    if (num_procs != 2)
